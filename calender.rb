@@ -26,7 +26,7 @@ class Calender
 	end
 
 	def display_day_names
-		@week_days.map {|wday| print wday, "   "}
+		@week_days.map {|wday| print wday, "    "}
 		print "\n"
 		flush_output
 	end
@@ -34,20 +34,20 @@ class Calender
 	def display_dates
 		#calender fully dependent on the current_start_date
 		date = @current_start_date 
+		#logic to calc previous pseudo dates
+		prev_fake_month_days = @current_start_date.wday  
+
+
 		for week in 0..5
 			for day in 0..6
 				if day == date.wday
-					print date.day					
-					if date.day < 9
-						print "   "
-					else
-						print "  "
-					end
+					(date.month == @current_start_date.month)	? (print date.day) : (print "*", date.day)		
+					((date.day < 9) & (date.month == @current_start_date.month)) ? ( print "    ") :( print "   ")
 					date +=1	
 				else
-					print "    "
+					 print "*", (@current_start_date - prev_fake_month_days).day , "  "
+					 prev_fake_month_days -= 1
 				end
-				break if date.month != @current_start_date.month
 			end
 			print "\n"
 		end
@@ -88,3 +88,19 @@ def calender_calculator
 end
 
 calender_calculator
+
+
+############################################
+#
+#
+#
+#
+#        July  2015
+#        S    M    T    W    T    F    S    
+#        *28  *29  *30  1    2    3    4    
+#        5    6    7    8    9   10   11   
+#        12   13   14   15   16   17   18   
+#        19   20   21   22   23   24   25   
+#        26   27   28   29   30   31   *1   
+#        *2   *3   *4   *5   *6   *7   *8   
+#
