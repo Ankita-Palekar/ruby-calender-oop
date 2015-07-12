@@ -2,6 +2,8 @@ require 'date'
 require 'io/console'
 
 class Calender
+
+	attr_accessor  :day_of_week
 	 
 	def initialize
 		@today = Date.today()
@@ -9,6 +11,7 @@ class Calender
 		month = @today.month
 		year = @today.year
 		@current_start_date = Date.new(year,month,1)
+		@day_of_week = 0
 	end
 
 	def change_current_start(month_counter)
@@ -52,14 +55,21 @@ class Calender
 	# end
 
 	def display_day_names
-		@week_days.map {|wday| print wday, "    "}
+		array_counter = @day_of_week 
+		loop do
+ 			print @week_days[array_counter], "    "
+ 			array_counter += 1
+ 			array_counter =( array_counter == 7) ? 0 : array_counter
+ 			break if array_counter == @day_of_week
+ 		end
 		print "\n"
 		flush_output
 	end
 
 	def display_dates
 		date = @current_start_date 	 
-		strt_ptr = date.wday
+		# if start_ptr - day_of_week is less then 0 then will start printing from the day of week itself else from the difference of start and dow
+		strt_ptr = (date.wday - @day_of_week) >= 0 ? (date.wday - @day_of_week) : @day_of_week     
 		prev_month_fake_display(strt_ptr)
 
 		for week in 0..5
@@ -93,24 +103,31 @@ end
 #Running code using above object 
 
 def calender_calculator
-	@cal = Calender.new
-	@cal.flush_output
-	@cal.calender
-	loop  do
-		print "Press P for Prev Month calender N next month calender E to Exit \n"
+	begin	
+		print "Enter start day of week e.g 0 => S, 1 => M \n"
+		@cal = Calender.new
 		@cal.flush_output
-		input = gets.chomp
-		break  if input == 'E'
-			if (input == 'P') |(input == 'N')
-				@cal.change_current_start(input)
-				@cal.calender
-			else
-				print "Wrong input ----- \n"
+		dow = gets.chomp
+		@cal.day_of_week = dow.to_i
+		@cal.calender
+			loop  do
+				print "Press P for Prev Month calender N next month calender E to Exit \n"
+				@cal.flush_output
+				input = gets.chomp
+				break  if input == 'E'
+					if (input == 'P') |(input == 'N')
+						@cal.change_current_start(input)
+						@cal.calender
+					else
+						print "Wrong input ----- \n"
+					end
 			end
+	rescue Exception => e
+		puts "some erro occured\n"
 	end
+
 end
 
 calender_calculator
  
 
- 
