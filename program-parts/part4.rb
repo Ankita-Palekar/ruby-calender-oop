@@ -111,7 +111,9 @@ class Calender
 			print "\n"
 		end
 		print "\n"
+
 		print_holidays(holiday_list)
+
 	end
 
 
