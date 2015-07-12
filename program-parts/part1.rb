@@ -31,26 +31,6 @@ class Calender
 		end
 	end
 
-	def prev_month_fake_display(num_previous_fake)
-		  num_days = num_previous_fake
-		for day in 0..(num_previous_fake-1)
-			print "*", (@current_start_date-num_days).day, "  "
-			num_days -= 1
-		end
-	end
-
-	# def next_month_fake_display(last_week_num, last_day)
-	# 	next_month_start_date = @current_start_date >> 1
-	# 	for week in last_week_num..5
-	# 		for day in last_day..6
-	# 			print "*", next_month_start_date.day, " "
-	# 			next_month_start_date += 1
-	# 		end
-	# 		print "\n"
-	# 		last_day = 0
-	# 	end
-	# end
-
 	def display_day_names
 		@week_days.map {|wday| print wday, "    "}
 		print "\n"
@@ -60,15 +40,12 @@ class Calender
 	def display_dates
 		date = @current_start_date 	 
 		strt_ptr = date.wday
-		prev_month_fake_display(strt_ptr)
+		print_prev_null(strt_ptr)
 
 		for week in 0..5
 			for day in strt_ptr..6
-				if date.month == @current_start_date.month #condition checks if new month started
-					(date.day < 9) ? (print date.day, "    ") : (print date.day,"   ")
-				else
-					print "*", date.day ,"   "
-				end
+				break if date.month != @current_start_date.month
+				(date.day < 9) ? (print date.day, "    ") : (print date.day,"   ")
 				date += 1 
 			end
 			strt_ptr = 0
@@ -111,6 +88,4 @@ def calender_calculator
 end
 
 calender_calculator
- 
-
  
