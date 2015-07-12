@@ -8,7 +8,6 @@ class Calender
 	def initialize
 		@today = Date.today()
 		@week_days = ['S',  'M',  'T',   'W', 'T', 'F', 'S']
-		
 		month = @today.month
 		year = @today.year
 		@current_start_date = Date.new(year,month,1)
@@ -131,4 +130,5 @@ end
 
 calender_calculator
  
+
 
