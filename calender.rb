@@ -1,21 +1,26 @@
 # $ LOAD_PATH << "."
 require 'date'
 require 'io/console'
+require 'optparse'
+require 'csv'
 # require 'holiday.rb'
 
 class Calender
 
-	attr_accessor  :day_of_week  
-	@@holidays
+	attr_accessor  :day_of_week, :current_start_date
+	@@holidays = {}
 
-	def initialize
-		@today = Date.today()
+
+	def initialize(today=Date.today())
+		@today = today
 		@week_days = ['S',  'M',  'T',   'W', 'T', 'F', 'S']
 		month = @today.month
 		year = @today.year
-		@current_start_date = Date.new(year,month,1)
+		# @current_start_date = Date.new(year,month,1)
 		@day_of_week = 0
 		@letters = ('a'..'z').to_a #to print holidays
+		
+		(1..12).each {|n| @@holidays[n] = {}}
 	end
 
 	def set_holidays(holidays)
@@ -39,7 +44,7 @@ class Calender
 
 	def print_prev_null(num)
 		for day in 0..(num - 1)
-			print "      "
+			print "     "
 		end
 	end
 
@@ -81,25 +86,21 @@ class Calender
 
 	def display_dates
 		date = @current_start_date 	 
-		# if start_ptr - day_of_week is less then 0 then will start printing from the day of week itself else from the difference of start and dow
-		strt_ptr = (date.wday - @day_of_week) >= 0 ? (date.wday - @day_of_week) : @day_of_week     
+		strt_ptr = (date.wday - @day_of_week) >= 0 ? (date.wday - @day_of_week) : ((6 - (date.wday - @day_of_week).abs) + 1)    
 		letters = @letters
 		holiday_list = {}
-
 		holidays_exist = ((@@holidays.has_key?(date.month)) & !(@@holidays[date.month]).empty?) ? true  : false
-
 		prev_month_fake_display(strt_ptr)
-
 		#first check if holidays for this month exist 
 		for week in 0..5
 			for day in strt_ptr..6
 				if date.month == @current_start_date.month #condition checks if new month started
 					 if holidays_exist & @@holidays[date.month].has_key?(date.day)
-					 	if !(@@holidays[date.month][date.day].empty?)	
-					 		let = letters.shift
-					 		holiday_list[let] = @@holidays[date.month][date.day]
-					 		print "-", let
-					 	end
+						 	if !(@@holidays[date.month][date.day].empty?)	
+						 		let = letters.shift
+						 		holiday_list[let] = @@holidays[date.month][date.day]
+						 		print "-", let
+						 	end
 					 end
 					(date.day < 9) ? (print date.day, "     ") : (print date.day,"    ")
 				else
@@ -111,7 +112,9 @@ class Calender
 			print "\n"
 		end
 		print "\n"
+
 		print_holidays(holiday_list)
+
 	end
 
 
@@ -132,10 +135,12 @@ end
 
 
 def calender_calculator
-	# begin	
+	begin	
 		@holidays = { 1=> { 26 => "Republic Day"}, 2 => {}, 3 => {}, 4 => {}, 5 => {}, 6 => {}, 7 => { 1 => "My day"}, 8 => {}, 9 => {}, 10 => {12 => "Diwali"}, 11 => {}, 12 => { 25 => "Christmas" }}
 		print "Enter start day of week e.g 0 => S, 1 => M \n"
 		@cal = Calender.new
+		today = Date.today()
+		@cal.current_start_date = Date.new(today.year, today.month, 1)
 		@cal.flush_output
 		dow = gets.chomp
 		@cal.day_of_week = dow.to_i
@@ -153,12 +158,74 @@ def calender_calculator
 						print "Wrong input ----- \n"
 					end
 			end
-	# rescue Exception => e
+	rescue Exception => e
 		puts "some erro occured\n"
-	# end
+	end
+
+end
+ 
+
+
+
+
+
+
+
+
+
+
+@cal = Calender.new 
+options = {}
+optparse = OptionParser.new do |opts|
+  opts.on('-m', '--month MONTH_NUMBER',Numeric ,"Enter month") do |month|
+    options[:month] = month
+  end
+
+  opts.on('-y', '--year YEAR',Numeric ,"Enter year") do |year|
+    options[:year] = year
+  end
+
+  opts.on('-w', '--DOW START_DAY_OF_WEEK',Numeric, "Enter 0 1 2 3 4 5 6 for S, M, T, W, T, F, S respectively") do |dow|
+    options[:dow] = dow
+  end
+
+  opts.on('-h', '--holidays HOLIDAYS_LIST' ,"Enter file name csv file should have format .csv and left column dates right column holiday type") do |holiday_file|
+    options[:holiday_file] = holiday_file
+  end
 
 end
 
-calender_calculator
- 
+
+
+
+optparse.parse!
+ if !options[:month].nil? & !options[:year].nil?  
+ 	
+	 # initialising holiday array to empty list 
+	 # stpe 1 is skipped below since it will be info
+	holiday_array = {}
+	
+	(1..12).each {|n| holiday_array[n] = {}}
+ 	
+ 	if options[:holiday_file]
+	 	filename = ""
+	 	filename.concat(options[:holiday_file]) 
+	 	CSV.foreach(filename) do |row|
+	 	    date = Date.parse(row[0])
+	 	    holiday_array[date.month][date.day]	= row[1]
+		end
+ 	end
+
+ 	@cal.set_holidays(holiday_array) 
+ 	@cal.current_start_date = Date.new(options[:year], options[:month], 1)
+ 	 !options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
+ 	@cal.calender
+ elsif (options[:month].nil? | options[:year].nil?)
+ 		puts optparse
+ else
+	today = Date.today()
+	@cal.current_start_date = Date.new(today.year, today.month, 1)
+	@cal.calender
+ end
+
 
