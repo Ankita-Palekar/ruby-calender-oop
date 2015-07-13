@@ -18,6 +18,8 @@ class Calender
 		year = @today.year
 		# @current_start_date = Date.new(year,month,1)
 		@day_of_week = 0
+
+		# REVIEW -- use String#next instead of this
 		@letters = ('a'..'z').to_a #to print holidays
 		
 		(1..12).each {|n| @@holidays[n] = {}}
@@ -68,6 +70,8 @@ class Calender
 	# 	end
 	# end
 
+
+	# REVIEW -- use the mod operator ('%') to power this loop.
 	def display_day_names
 		array_counter = @day_of_week 
 		loop do
@@ -89,7 +93,11 @@ class Calender
 		strt_ptr = (date.wday - @day_of_week) >= 0 ? (date.wday - @day_of_week) : ((6 - (date.wday - @day_of_week).abs) + 1)    
 		letters = @letters
 		holiday_list = {}
+
+		# REVIEW -- you don't need to use a ternary operator to evalue to true or
+		# false. Your boolean expression itself will evalue to true or false
 		holidays_exist = ((@@holidays.has_key?(date.month)) & !(@@holidays[date.month]).empty?) ? true  : false
+		
 		prev_month_fake_display(strt_ptr)
 		#first check if holidays for this month exist 
 		for week in 0..5
@@ -136,6 +144,7 @@ end
 
 def calender_calculator
 	begin	
+		# REVIEW -- why are @name variables being used outside a class?
 		@holidays = { 1=> { 26 => "Republic Day"}, 2 => {}, 3 => {}, 4 => {}, 5 => {}, 6 => {}, 7 => { 1 => "My day"}, 8 => {}, 9 => {}, 10 => {12 => "Diwali"}, 11 => {}, 12 => { 25 => "Christmas" }}
 		print "Enter start day of week e.g 0 => S, 1 => M \n"
 		@cal = Calender.new
@@ -224,6 +233,10 @@ optparse.parse!
  		puts optparse
  else
 	today = Date.today()
+
+	# REVIEW -- if you ALWAYS have to pass the first day of the month, why are
+	# you forcing the calling statement to pass it in? Why not just take the
+	# month & year alone and construct the date inside the Calendar class?
 	@cal.current_start_date = Date.new(today.year, today.month, 1)
 	@cal.calender
  end
