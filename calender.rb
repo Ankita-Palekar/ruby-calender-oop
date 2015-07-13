@@ -6,8 +6,8 @@ require 'csv'
 # require 'holiday.rb'
 
 $holiday_hash = {}
-$holiday_list = {}
-$holiday_legend_counter = 'a'
+space = " "
+# $holiday_legend_counter = 'a'
 
 options = {}
 optparse = OptionParser.new do |opts|
@@ -75,10 +75,6 @@ class Calender
 		flush_output
 	end
 
-	def display_holidays
-		$holiday_list.map {|key, value| print key," => ",value,"\n" }
-	end
-
 	def display_dates(print_date)
 		date = @current_start_date 
 		strt_ptr = (date.wday - @day_of_week) >= 0 ? (date.wday - @day_of_week) : (6 - (date.wday - @day_of_week).abs + 1)
@@ -97,8 +93,6 @@ class Calender
 		display_month_year
 		display_day_names
 		display_dates(print_date)
-		display_holidays
-
 	end
 
 #miscallaneous functions
@@ -113,16 +107,8 @@ end
 
  
 
-space = " "
+
 # to print clean month 
-print_clean = Proc.new do |date, current_date|
-	if date.month != current_date.month
-		print space * 9
-	else
-		(date.day <= 9 )? (print date.day, space * 8) 
-		: ( print date.day, space * 7	) 
-	end
-end
 
 # to print pseudo prev and next month
 
@@ -136,20 +122,6 @@ print_pseudo = Proc.new do |date, current_date|
 end
 
 #above program modified to add holiday functionlaity
-
-print_holiday = Proc.new do |date, current_date|
-	if date.month != current_date.month
-		(date.day <= 9 )? ( print "*", date.day, space * 7) : ( print "*", date.day, space * 6) 
-	else
-			if $holiday_hash[date.month].has_key?(date.day)
-				$holiday_list[$holiday_legend_counter] = $holiday_hash[date.month][date.day]	
-				print "-",$holiday_legend_counter 
-				$holiday_legend_counter  = $holiday_legend_counter.next
-			end
-		(date.day <= 9 )? ( print date.day, space * 8) 
-		: ( print date.day, space * 7) 
-	end
-end
 
 # def calender_calculator
 # 	 options = {}
@@ -193,23 +165,55 @@ end
 
 
 optparse.parse!
+
+	def display_holidays(holiday_list)
+		holiday_list.map {|key, value| print key," => ",value,"\n" }
+	end
+
 	@cal = Calender.new(options) 
  if !options[:month].nil? & !options[:year].nil?  		
-	$holiday_hash = {}
+ 	holiday_legend_counter = 'a'
+ 	holiday_list = {}
+ 	#lambda function for 
+
+	print_holiday = Proc.new do |date, current_date|
+		if date.month != current_date.month
+			(date.day <= 9 )? ( print "*", date.day, space * 7) : ( print "*", date.day, space * 6) 
+		else
+				if $holiday_hash[date.month].has_key?(date.day)
+					holiday_list[holiday_legend_counter] = $holiday_hash[date.month][date.day]	
+					print "-",holiday_legend_counter 
+					holiday_legend_counter  = holiday_legend_counter.next
+				end
+			(date.day <= 9 )? ( print date.day, space * 8) 
+			: ( print date.day, space * 7) 
+		end
+	end
+
 	(1..12).each {|n| $holiday_hash[n] = {}}
  	if options[:holiday_file]
-	 	filename = ""
-	 	filename.concat(options[:holiday_file]) 
-	 	CSV.foreach(filename) do |row|
-	 	    date = Date.parse(row[0])
-	 	    $holiday_hash[date.month][date.day]	= row[1]
-		end
- 	end
- 	@cal.set_holidays($holiday_hash) 
- 	 !options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
-
- 	@cal.calender(print_holiday)	 
+		 	filename = ""
+		 	filename.concat(options[:holiday_file]) 
+		 	CSV.foreach(filename) do |row|
+		 	    date = Date.parse(row[0])
+		 	    $holiday_hash[date.month][date.day]	= row[1]
+			end
+	 	end
+	 	@cal.set_holidays($holiday_hash) 
+	 	 !options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
+	 	@cal.calender(print_holiday)	 
+	 	display_holidays(holiday_list)
  elsif (options[:month].nil? | options[:year].nil?)
+		
+		print_clean = Proc.new do |date, current_date|
+			if date.month != current_date.month
+				print space * 9
+			else
+				(date.day <= 9 )? (print date.day, space * 8) 
+				: ( print date.day, space * 7	) 
+			end
+		end
+		
 		@cal.calender(print_clean)
  end
 
