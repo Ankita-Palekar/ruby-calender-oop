@@ -5,6 +5,7 @@ require 'optparse'
 require 'csv'
 
 lambda_array = []
+extra_functionality_array = []
 holiday_legend_counter = 'a'
 holiday_list = {}
 
@@ -41,9 +42,13 @@ print_date_features = Proc.new do |date,current_date|
 		printf("%5s", print_string)
 end
 
-print_holiday_list = Proc.new {holiday_list.map {|key, value| print key," => ",value,"\n" }}
+print_holiday_list = Proc.new {holiday_list.map {|key, value| printf("%5s  ==> %2s \n", key.to_s, value.to_s)}}
 
-
+print_extra_functionlaity = Proc.new{
+	extra_functionality_array.each do |functionality|
+		functionality.call
+	end
+}
 
 
 options = {}
@@ -63,11 +68,14 @@ optparse = OptionParser.new do |opts|
 
   opts.on('-h', '--holidays HOLIDAYS_LIST' ,"Enter file name csv file should have format .csv and left column dates right column holiday type") do |holiday_file|
     options[:holiday_file] = holiday_file
+
   end
 
   opts.on('--holidays', '--Set holidays counter'," ") do |holidays|
-  	options[:holidays] = 1
+  	 options[:holidays] = 1
+ 		
  			lambda_array.push(print_holiday)
+ 			extra_functionality_array.push(print_holiday_list)
   end
 
 
@@ -108,7 +116,8 @@ class Calender
 	end
 
 	def display_month_year
-		print @current_start_date.strftime('      %B'), "  ", @current_start_date.year
+		printf("%s  - %2s", @current_start_date.strftime('           %B'), @current_start_date.year)
+		# print @current_start_date.strftime('      %B'), "  ", @current_start_date.year
 		print "\n"
 		flush_output
 	end
@@ -170,9 +179,8 @@ optparse.parse!
 	 	 
 	 	 !options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
 	 	@cal.calender(print_date_features)	 
-
-	 		# puts holiday_list
-	 	print_holiday_list.call
+	 		print_extra_functionlaity.call
+	 	# print_holiday_list.call
  elsif (options[:month].nil? | options[:year].nil?)
 		@cal.calender(print_clean)
  end
