@@ -12,37 +12,41 @@ holiday_list = {}
 $holiday_hash = {}
 space = " "
 
- 	holiday_legend_counter = 'a'
- 	holiday_list = {}
-
 print_fake = Proc.new do |date,current_date|
-		star = ""
-		if date.month != current_date.month
-			star = "*"
-		end
-		star
+	star = ""
+	if date.month != current_date.month
+		star = "*"
 	end
+	star
+end
 
 print_holiday = Proc.new do |date,current_date| 
 	legend_counter = ""
+	
 	if $holiday_hash[date.month].has_key?(date.day)
 		holiday_list[holiday_legend_counter] = $holiday_hash[date.month][date.day]	
 		legend_counter = holiday_legend_counter
 		holiday_legend_counter  = holiday_legend_counter.next
 	end
+ 	
  	legend_counter
 end
 
 print_date_features = Proc.new do |date,current_date| 
-		 print_string = ""
-		lambda_array.each do |print_function|
-			print_string.concat(print_function.call date, current_date)
-		end
-		print_string.concat(date.day.to_s)
-		printf("%5s", print_string)
+	print_string = ""
+
+	lambda_array.each do |print_function|
+		print_string.concat(print_function.call date, current_date)
+	end
+	print_string.concat(date.day.to_s)
+	printf("%7s", print_string)
 end
 
-print_holiday_list = Proc.new {holiday_list.map {|key, value| printf("%5s  ==> %2s \n", key.to_s, value.to_s)}}
+
+print_holiday_list = Proc.new {
+	holiday_list.map {|key, value| printf("%15s  ==> %2s \n", key.to_s, value.to_s)} 
+	printf("\n")
+}	
 
 print_extra_functionlaity = Proc.new{
 	extra_functionality_array.each do |functionality|
@@ -60,7 +64,6 @@ optparse = OptionParser.new do |opts|
   opts.on('-y', '--year YEAR',Numeric ,"Enter year") do |year|
     options[:year] = year
   end
- 
 
   opts.on('-w', '--DOW START_DAY_OF_WEEK',Numeric ,"Enter 0 1 2 3 4 5 6 for S, M, T, W, T, F, S respectively") do |dow|
     options[:dow] = dow
@@ -68,29 +71,24 @@ optparse = OptionParser.new do |opts|
 
   opts.on('-h', '--holidays HOLIDAYS_LIST' ,"Enter file name csv file should have format .csv and left column dates right column holiday type") do |holiday_file|
     options[:holiday_file] = holiday_file
-
   end
 
   opts.on('--holidays', '--Set holidays counter'," ") do |holidays|
   	 options[:holidays] = 1
- 		
- 			lambda_array.push(print_holiday)
- 			extra_functionality_array.push(print_holiday_list)
+		lambda_array.push(print_holiday)
+		extra_functionality_array.push(print_holiday_list)
   end
 
 
   opts.on('--otherdays', '--to show other * days', " ") do |otherdays|
-  	options[:otherdays] = 1
- 		 	lambda_array.push(print_fake)
+		options[:otherdays] = 1
+		lambda_array.push(print_fake)
   end
-
 end
 
 
 class Calender
-
 	attr_accessor  :day_of_week,  :month, :year 
-
 	def initialize(options)		
 		if !options[:month].nil? & !options[:year].nil?  
 			@current_start_date = Date.new(options[:year], options[:month], 1)
@@ -116,16 +114,15 @@ class Calender
 	end
 
 	def display_month_year
-		printf("%s  - %2s", @current_start_date.strftime('           %B'), @current_start_date.year)
-		# print @current_start_date.strftime('      %B'), "  ", @current_start_date.year
+		printf("\n\n\n%20s"," ")
+		printf("%s  - %2s", @current_start_date.strftime('%B'), @current_start_date.year)
 		print "\n"
 		flush_output
 	end
 
 	def display_day_names
-		space = " "
 		@week_days.each_with_index { |val, index| 
-		printf("%5s", @week_days[(@day_of_week + index) % 7])}
+		printf("%7s", @week_days[(@day_of_week + index) % 7])}
 		print "\n"
 		flush_output
 	end
@@ -134,10 +131,11 @@ class Calender
 		date = @current_start_date 
 		strt_ptr = (date.wday - @day_of_week) >= 0 ? (date.wday - @day_of_week) : (6 - (date.wday - @day_of_week).abs + 1)
 		date = @current_start_date - strt_ptr
+		
 		for week in 0..5
 			for day in 0..6
-				self.instance_exec date, @current_start_date, &print_date
-				 
+				print_date.call date, @current_start_date
+				# self.instance_exec date, @current_start_date, &print_date 
 				date += 1
 			end
 			print "\n"
@@ -164,23 +162,20 @@ optparse.parse!
 	end
 
 	@cal = Calender.new(options) 
- if !options[:month].nil? & !options[:year].nil?  
-
+	if !options[:month].nil? & !options[:year].nil?  
  	#lambda function for 
-	(1..12).each {|n| $holiday_hash[n] = {}} 	 
- 	if options[:holiday_file]
+		(1..12).each {|n| $holiday_hash[n] = {}} 	 
+	 	if options[:holiday_file]
 		 	filename = ""
-		 	filename.concat(options[:holiday_file]) 
+		 	filename.concat(options[:holiday_file])  	
 		 	CSV.foreach(filename) do |row|
 		 	    date = Date.parse(row[0])
 		 	    $holiday_hash[date.month][date.day]	= row[1]
 			end
-	 	end
-	 	 
-	 	 !options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
+		end
+	 	!options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
 	 	@cal.calender(print_date_features)	 
-	 		print_extra_functionlaity.call
-	 	# print_holiday_list.call
+	 	print_extra_functionlaity.call
  elsif (options[:month].nil? | options[:year].nil?)
 		@cal.calender(print_clean)
  end
