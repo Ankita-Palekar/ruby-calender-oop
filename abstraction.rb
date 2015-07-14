@@ -4,14 +4,47 @@ require 'io/console'
 require 'optparse'
 require 'csv'
 
-# require 'holiday.rb'
 lambda_array = []
 holiday_legend_counter = 'a'
 holiday_list = {}
 
 $holiday_hash = {}
 space = " "
-# $holiday_legend_counter = 'a'
+
+ 	holiday_legend_counter = 'a'
+ 	holiday_list = {}
+
+print_fake = Proc.new do |date,current_date|
+		star = ""
+		if date.month != current_date.month
+			star = "*"
+		end
+		star
+	end
+
+print_holiday = Proc.new do |date,current_date| 
+	legend_counter = ""
+	if $holiday_hash[date.month].has_key?(date.day)
+		holiday_list[holiday_legend_counter] = $holiday_hash[date.month][date.day]	
+		legend_counter = holiday_legend_counter
+		holiday_legend_counter  = holiday_legend_counter.next
+	end
+ 	legend_counter
+end
+
+print_date_features = Proc.new do |date,current_date| 
+		 print_string = ""
+		lambda_array.each do |print_function|
+			print_string.concat(print_function.call date, current_date)
+		end
+		print_string.concat(date.day.to_s)
+		printf("%5s", print_string)
+end
+
+print_holiday_list = Proc.new {holiday_list.map {|key, value| print key," => ",value,"\n" }}
+
+
+
 
 options = {}
 optparse = OptionParser.new do |opts|
@@ -24,8 +57,7 @@ optparse = OptionParser.new do |opts|
   end
  
 
-
-  opts.on('-w', '--DOW START_DAY_OF_WEEK',Numeric, "Enter 0 1 2 3 4 5 6 for S, M, T, W, T, F, S respectively") do |dow|
+  opts.on('-w', '--DOW START_DAY_OF_WEEK',Numeric ,"Enter 0 1 2 3 4 5 6 for S, M, T, W, T, F, S respectively") do |dow|
     options[:dow] = dow
   end
 
@@ -35,13 +67,13 @@ optparse = OptionParser.new do |opts|
 
   opts.on('--holidays', '--Set holidays counter'," ") do |holidays|
   	options[:holidays] = 1
-  	puts options[:holidays]
+ 			lambda_array.push(print_holiday)
   end
 
 
   opts.on('--otherdays', '--to show other * days', " ") do |otherdays|
   	options[:otherdays] = 1
-  	puts options[:otherdays]
+ 		 	lambda_array.push(print_fake)
   end
 
 end
@@ -116,40 +148,6 @@ class Calender
 end
 
  
- 	holiday_legend_counter = 'a'
- 	holiday_list = {}
-
-print_fake = Proc.new do |date,current_date|
-		star = ""
-		if date.month != current_date.month
-			star = "*"
-		end
-		star
-	end
-
-print_holiday = Proc.new do |date,current_date| 
-	legend_counter = ""
-	if $holiday_hash[date.month].has_key?(date.day)
-		holiday_list[holiday_legend_counter] = $holiday_hash[date.month][date.day]	
-		legend_counter = holiday_legend_counter
-		holiday_legend_counter  = holiday_legend_counter.next
-	end
- 	legend_counter
-end
-
-print_date_features = Proc.new do |date,current_date| 
-	 print_string = ""
-	lambda_array.each do |print_function|
-		print_string.concat(print_function.call date, current_date)
-	end
-	print_string.concat(date.day.to_s)
-	printf("%5s", print_string)
-end
-
- 	# lambda_array[0] = print_fake
- 	# lambda_array[1] = print_holiday
-
-
 optparse.parse!
 
 	def display_holidays(holiday_list)
@@ -158,15 +156,6 @@ optparse.parse!
 
 	@cal = Calender.new(options) 
  if !options[:month].nil? & !options[:year].nil?  
- 	#--TODO reducing below unnecessary if conditions
- 		 
- 		 if options[:holidays]
- 				lambda_array.push(print_holiday)
- 		 end		
-
- 		 if options[:otherdays]
- 		 		lambda_array.push(print_fake)
- 		 end
 
  	#lambda function for 
 	(1..12).each {|n| $holiday_hash[n] = {}} 	 
@@ -181,6 +170,9 @@ optparse.parse!
 	 	 
 	 	 !options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
 	 	@cal.calender(print_date_features)	 
+
+	 		# puts holiday_list
+	 	print_holiday_list.call
  elsif (options[:month].nil? | options[:year].nil?)
 		@cal.calender(print_clean)
  end
