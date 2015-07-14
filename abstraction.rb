@@ -163,8 +163,8 @@ optparse.parse!
 
 	@cal = Calender.new(options) 
 	if !options[:month].nil? & !options[:year].nil?  
- 	#lambda function for 
-		(1..12).each {|n| $holiday_hash[n] = {}} 	 
+	#lambda function for 
+	(1..12).each {|n| $holiday_hash[n] = {}} 	 
 	 	if options[:holiday_file]
 		 	filename = ""
 		 	filename.concat(options[:holiday_file])  	
@@ -173,11 +173,11 @@ optparse.parse!
 		 	    $holiday_hash[date.month][date.day]	= row[1]
 			end
 		end
-	 	!options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
-	 	@cal.calender(print_date_features)	 
-	 	print_extra_functionlaity.call
- elsif (options[:month].nil? | options[:year].nil?)
-		@cal.calender(print_clean)
- end
+ 	!options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
+ 	@cal.calender(print_date_features)	 
+ 	print_extra_functionlaity.call
+	elsif (options[:month].nil? | options[:year].nil?)
+	@cal.calender(print_clean)
+	end
 
 
