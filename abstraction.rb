@@ -157,27 +157,29 @@ end
  
 optparse.parse!
 
-	def display_holidays(holiday_list)
-		holiday_list.map {|key, value| print key," => ",value,"\n" }
-	end
+def display_holidays(holiday_list)
+	holiday_list.map {|key, value| print key," => ",value,"\n" }
+end
 
-	@cal = Calender.new(options) 
-	if !options[:month].nil? & !options[:year].nil?  
-	#lambda function for 
-	(1..12).each {|n| $holiday_hash[n] = {}} 	 
-	 	if options[:holiday_file]
-		 	filename = ""
-		 	filename.concat(options[:holiday_file])  	
-		 	CSV.foreach(filename) do |row|
-		 	    date = Date.parse(row[0])
-		 	    $holiday_hash[date.month][date.day]	= row[1]
-			end
+@cal = Calender.new(options) 
+
+if !options[:month].nil? & !options[:year].nil?  
+#lambda function for 
+	(1..12).each {|n| $holiday_hash[n] = {}} 	 	
+ 	
+ 	if options[:holiday_file]
+	 	filename = ""
+	 	filename.concat(options[:holiday_file])  	
+	 	CSV.foreach(filename) do |row|
+	 	    date = Date.parse(row[0])
+	 	    $holiday_hash[date.month][date.day]	= row[1]
 		end
+	end
  	!options[:dow].nil? ? @cal.day_of_week = options[:dow] : @cal.day_of_week = 0
  	@cal.calender(print_date_features)	 
  	print_extra_functionlaity.call
-	elsif (options[:month].nil? | options[:year].nil?)
+elsif (options[:month].nil? | options[:year].nil?)
 	@cal.calender(print_clean)
-	end
+end
 
 
